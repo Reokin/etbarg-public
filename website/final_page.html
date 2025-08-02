@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <title>...</title>
+    <style>
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      body {
+        background-color: black;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      @keyframes hideintro {
+        from {opacity: 1;}
+        to {opacity: 0;}
+      }
+      #intro {
+        opacity: 1;
+      }
+      #dtimer {
+        width: 220px;
+        justify-self: center;
+      }
+      #timer {
+        color: transparent;
+        font-family: 'Courier New', Courier, monospace;
+        justify-self: center;
+        font-size: 32px;
+        margin-left: 20000px;
+      }
+    </style>
+    <script>
+        window.oncontextmenu = function () {
+            return false;
+        }
+    </script>
+</head>
+<body>
+  <canvas id="intro" width="10000" height="10000" style="position: absolute; z-index: 999;"></canvas>
+  <canvas id="topleft" width="10000" height="10000" style="z-index: 1;"></canvas><canvas id="topright" width="10000" height="10000" style="z-index: 1;"></canvas>
+  <div style="margin-top: 20000px;"><img width="356" height="185" src="teaser_4.png"><img width="328" height="211" src="teaser_5.png"></div>
+  <div id="dtimer"><p id="timer">0:0:0:0</p></div>
+  <script>
+    (async () => {
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms || DEF_DELAY));
+      }
+
+      const introcanvas = document.getElementById("intro");
+      const intro_ctx = introcanvas.getContext("2d");
+
+      const topleftcanvas = document.getElementById("topleft");
+      const topleft_ctx = topleftcanvas.getContext("2d");
+
+      const toprightcanvas = document.getElementById("topright");
+      const topright_ctx = toprightcanvas.getContext("2d");
+
+      const timerelem = document.getElementById("timer");
+      const dtimerelem = document.getElementById("dtimer");
+
+      var introHeight;
+      var introWidth;
+      var introX;
+      async function init() {
+        introcanvas.width  = document.body.clientWidth;
+        introcanvas.height = window.innerHeight-4;
+        introHeight = introcanvas.height;
+        introWidth = ((introHeight / 600) * 800).toFixed(0);
+        introX = ((introcanvas.width - introWidth) / 2).toFixed(0);
+
+        topleftcanvas.width  = (document.body.clientWidth/2);
+        topleftcanvas.height = ((topleftcanvas.width/960)*800);
+
+        toprightcanvas.width  = (document.body.clientWidth/2);
+        toprightcanvas.height = ((topleftcanvas.width/960)*800);
+
+        dtimerelem.style.height = "" + ((document.body.clientWidth/1920)*220);
+        timerelem.style.fontSize = "" + ((document.body.clientWidth/1920)*32) + "px";
+      }
+      await init();
+
+      var countDownDate = new Date(1754074800000).getTime();
+
+      var x = setInterval(async function() {
+
+        var now = new Date().getTime();
+
+        var distance = countDownDate - now;
+
+        var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        timerelem.innerHTML = (days == 0 ? "" : days + ":") + (hours < 10 ? "0" + hours : hours) + ":" + (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+
+        if (distance < 0) {
+          clearInterval(x);
+          timerelem.innerHTML = "00:00:00";
+        }
+      }, 1000);
+
+      var loaded = 0;
+      async function imgEvent() {
+        loaded++;
+        if (loaded == 2) {
+          intro_ctx.fillStyle = "black";
+          intro_ctx.fillRect(0, 0, introcanvas.width, introcanvas.height);
+          intro_ctx.drawImage(introimg1, introX, 0, introWidth, introHeight);
+          isRunning = true;
+          await introAnim();
+        }
+      }
+
+      async function putlevel() {
+        try {
+            const response = await fetch("/final_page_tracker", {
+                method: "POST"
+            });
+            if (!response.ok) {
+                return
+            }
+        } catch (error) {
+            return
+        }
+      }
+      await putlevel()
+      
+      const introimg1 = new Image();
+      const introimg2 = new Image();
+
+      const topleftimg = new Image();
+      const toprightimg = new Image();
+
+      introimg1.onload = await imgEvent;
+      introimg2.onload = await imgEvent;
+
+      topleftimg.onload = async function() {
+        topleft_ctx.drawImage(topleftimg, 0, 0, topleftcanvas.width, topleftcanvas.height);
+      }
+      toprightimg.onload = async function() {
+        topright_ctx.drawImage(toprightimg, 0, 0, toprightcanvas.width, toprightcanvas.height);
+      }
+
+      introimg1.src = "/final_page/ending_on.png";
+      introimg2.src = "/final_page/ending_off.png";
+
+      topleftimg.src = "/final_page/well_done.png";
+      toprightimg.src = "/final_page/teaser_0.png";
+
+      var topright_current = 0;
+
+      async function drawTopRight() {
+        topright_current++;
+        if (topright_current > 3) {
+          topright_current = 0;
+        }
+        toprightimg.src = ("/final_page/teaser_" + topright_current + ".png");
+      }
+
+      var isRunning = false;
+      async function introAnim() {
+        while (isRunning) {
+          await sleep(1000);
+          intro_ctx.drawImage(introimg2, introX, 0, introWidth, introHeight);
+          await sleep(1000);
+          intro_ctx.drawImage(introimg1, introX, 0, introWidth, introHeight);
+        }
+      }
+
+      toprightcanvas.addEventListener('click', async function(event) {
+        await drawTopRight();
+      }, true)
+
+      var isIntroRemoved = false;
+      introcanvas.addEventListener('click', async function(event) {
+        isRunning = false;
+        introcanvas.style.animation="hideintro 1s linear forwards";
+        await sleep(1100);
+        introcanvas.remove();
+        isIntroRemoved = true;
+        timerelem.style.color = "red";
+      }, true)
+
+      window.addEventListener('resize', function(event) {
+        init();
+        if (!isIntroRemoved) {
+          intro_ctx.reset();
+          intro_ctx.fillStyle = "black";
+          intro_ctx.fillRect(0, 0, introcanvas.width, introcanvas.height);
+          intro_ctx.drawImage(introimg1, introX, 0, introWidth, introHeight);
+        }
+        topleft_ctx.drawImage(topleftimg, 0, 0, topleftcanvas.width, topleftcanvas.height);
+        topright_ctx.drawImage(toprightimg, 0, 0, toprightcanvas.width, toprightcanvas.height);
+      }, true);
+    })();
+  </script>
+</body>

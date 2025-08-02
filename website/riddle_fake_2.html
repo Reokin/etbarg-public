@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <title>Not available</title>
+    <style>
+        body {
+          background-color: white;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        div {
+            color: black;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-top: -50px;
+            margin-left: -100px;
+            text-align: center;
+            white-space: pre-line;
+        }
+    </style>
+    <script>
+        window.oncontextmenu = function () {
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <div>This page is not available.
+    <button onclick="history.back()">Go back</button>
+    </div>
+</body>

@@ -1,0 +1,4 @@
+obs-websocket-py
+fastapi
+uvicorn
+requests

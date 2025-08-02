@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>a lever...</title>
+    <style>
+        body {background-color: black;}
+    </style>
+    <script>
+        window.oncontextmenu = function () {
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <canvas id="thing" width="809" height="642"></canvas>
+    <script>
+        (async() => {
+            const canvas = document.getElementById("thing");
+            const ctx = canvas.getContext("2d");
+
+            const lights = new Image();
+            const lever = new Image();
+            lights.onload = drawlights;
+            lever.onload = drawlever;
+
+            const sound = new Audio("levers/lever_sound.ogg");
+
+            var clicked = false
+
+            lights.src = "levers/light_3.png"
+            lever.src = "levers/lever_off.png"
+
+            function drawlights() {
+                ctx.drawImage(lights, 0, 0, 809, 110)
+            }
+
+            function drawlever() {
+                ctx.drawImage(lever, 249, 120, 312, 522)
+            }
+
+            async function checklevel() {
+                try {
+                    const response = await fetch("/get_level");
+                    if (!response.ok) {
+                        alert("Error");
+                        return false;
+                    } else {
+                        return await response.json();
+                    }
+                } catch (error) {
+                    alert("Error");
+                    return false;
+                }
+            }
+
+            async function putlevel() {
+                try {
+                    const response = await fetch("/post_level_4", {
+                        method: "POST"
+                    });
+                    if (!response.ok) {
+                        alert("Error");
+                        return false;
+                    } else {
+                        return true;
+                    }
+                } catch (error) {
+                    alert("Error");
+                    return false;
+                }
+            }
+
+            const level = await checklevel()
+            if (level) {
+                if (level["level"] > 3) {
+                    clicked = true
+                    lights.src = `levers/light_${level["level"]}.png`
+                    lever.src = "levers/lever_on.png"
+                }
+            } else {
+                clicked = true
+            }
+
+            async function handleclick() {
+                if (!clicked) {
+                    clicked = true
+                    if (await putlevel()) {
+                        lights.src = "levers/light_4.png"
+                        lever.src = "levers/lever_on.png"
+                        sound.play()
+                    } else {
+                        clicked = true
+                    }
+                }
+            }
+
+            document.addEventListener("click", await handleclick)
+    })();
+    </script>
+</body>
+</html>

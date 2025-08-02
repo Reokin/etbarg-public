@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1903, initial-scale=1, minimum-scale=1">
+    <title>THE RANDOM NUMBER GENERATOR</title>
+    <audio preload="auto">
+        <source src="riddles/wrong.ogg" type="audio/ogg" />
+        <source src="riddles/correct.ogg" type="audio/ogg" />
+        <source src="riddles/finished.ogg" type="audio/ogg" />
+    </audio>
+    <style>
+        body {
+          background-color: black;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script>
+        window.oncontextmenu = function () {
+            return false;
+        }
+    </script>
+</head>
+<body>
+    <canvas id="1" width="10000" height="10000"></canvas>
+    <script src="riddles/wasm_exec.js"></script>
+    <script>
+      (async () => {
+        try {
+          const go = new Go();
+            const result = await WebAssembly.instantiateStreaming(
+              fetch("riddles/riddle_3.wasm"),
+              go.importObject
+            );
+          await go.run(result.instance);
+        } catch {
+          alert("Error");
+        }
+    })();
+    </script>
+</body>
